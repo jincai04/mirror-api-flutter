@@ -18,28 +18,10 @@ USER_TOKENS = {
 def health():
     return jsonify({"status": "ok"})
 
-@app.route('/genset', methods=['POST'])
-def get_genset():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing request data"}), 400
-
-    utoken = None
-
-    # Check if email or utoken is provided
-    if 'email' in data and data['email']:
-        email = data['email']
-        utoken = USER_TOKENS.get(email)
-        if not utoken:
-            return jsonify({"error": "No utoken found for user email"}), 404
-    elif 'utoken' in data and data['utoken']:
-        utoken = data['utoken']
-    else:
-        return jsonify({"error": "Missing email or utoken"}), 400
-
-    # Validate utoken against known tokens
-    if utoken not in USER_TOKENS.values():
-        return jsonify({"error": "Invalid utoken"}), 404
+@app.route('/genset', methods=['GET'])
+def get_genset_list():
+    # Use the hardcoded utoken for SmartGen API
+    utoken = "bebf6914640ec3ed6bf00398fb7969da"
 
     try:
         # Call SmartGen API
@@ -50,10 +32,14 @@ def get_genset():
         response.raise_for_status()  # Raise exception for bad status codes
 
         smartgen_data = response.json()
-        print(f"SmartGen API response: {smartgen_data}")
+        print(f"SmartGen API response received")
 
-        # Return the SmartGen API data directly
-        return jsonify(smartgen_data)
+        # Extract only the data.list array
+        genset_list = smartgen_data.get("data", {}).get("list", [])
+        print(f"Returning {len(genset_list)} gensets")
+
+        # Return only the genset list array
+        return jsonify(genset_list)
 
     except requests.exceptions.RequestException as e:
         print(f"Error calling SmartGen API: {e}")
