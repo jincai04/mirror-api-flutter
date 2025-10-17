@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/mirror_api_service.dart';
+import '../services/api_config.dart';
 
 class LiveStatusPage extends StatefulWidget {
   const LiveStatusPage({super.key});
@@ -12,8 +13,7 @@ class _LiveStatusPageState extends State<LiveStatusPage> {
   late MirrorApiService _apiService;
   late Future<Map<String, dynamic>> _gensetData;
 
-  // Replace with your Ngrok URL
-  String ngrokUrl = 'https://your-ngrok-url.ngrok.io';
+  String apiUrl = ApiConfig.baseUrl;
   String utoken = 'mock_utoken_123';
   final TextEditingController _urlController = TextEditingController();
   final TextEditingController _utokenController = TextEditingController();
@@ -21,17 +21,17 @@ class _LiveStatusPageState extends State<LiveStatusPage> {
   @override
   void initState() {
     super.initState();
-    _urlController.text = ngrokUrl;
+    _urlController.text = apiUrl;
     _utokenController.text = utoken;
-    _apiService = MirrorApiService(baseUrl: ngrokUrl);
+    _apiService = MirrorApiService(baseUrl: apiUrl);
     _gensetData = _apiService.fetchGensetData(utoken);
   }
 
   void _updateUrl() {
     setState(() {
-      ngrokUrl = _urlController.text;
+      apiUrl = _urlController.text;
       utoken = _utokenController.text;
-      _apiService = MirrorApiService(baseUrl: ngrokUrl);
+      _apiService = MirrorApiService(baseUrl: apiUrl);
       _gensetData = _apiService.fetchGensetData(utoken);
     });
   }
@@ -57,8 +57,8 @@ class _LiveStatusPageState extends State<LiveStatusPage> {
                 TextField(
                   controller: _urlController,
                   decoration: const InputDecoration(
-                    labelText: 'Ngrok URL',
-                    hintText: 'https://your-ngrok-url.ngrok.io',
+                    labelText: 'API URL',
+                    hintText: 'https://your-api-url.com',
                   ),
                 ),
                 const SizedBox(height: 8),
