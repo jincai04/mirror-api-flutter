@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+import requests
 
 load_dotenv()
 
@@ -10,7 +11,7 @@ CORS(app)  # Enable CORS for all origins
 
 # Mock user-token mapping (replace with Firestore/Airtable integration)
 USER_TOKENS = {
-    "user@example.com": "mock_utoken_123"
+    "user@example.com": "bebf6914640ec3ed6bf00398fb7969da"
 }
 
 @app.route('/health', methods=['GET'])
@@ -40,15 +41,26 @@ def get_genset():
     if utoken not in USER_TOKENS.values():
         return jsonify({"error": "Invalid utoken"}), 404
 
-    # Mock SmartGen API call (replace with real API integration)
-    # In production, use SMARTGEN_API_KEY = os.getenv('SMARTGEN_API_KEY')
-    genset_data = {
-        "genset_id": f"GEN-{utoken[-4:]}",  # Mock ID based on utoken
-        "status": "running",
-        "power": "50kW"
-    }
+    try:
+        # Call SmartGen API
+        smartgen_url = f"https://www.smartgencloudplus.com/yewu/third/genset/list?utoken={utoken}&page=1&per_page=10"
+        print(f"Calling SmartGen API: {smartgen_url}")
 
-    return jsonify(genset_data)
+        response = requests.get(smartgen_url, timeout=30)
+        response.raise_for_status()  # Raise exception for bad status codes
+
+        smartgen_data = response.json()
+        print(f"SmartGen API response: {smartgen_data}")
+
+        # Return the SmartGen API data directly
+        return jsonify(smartgen_data)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error calling SmartGen API: {e}")
+        return jsonify({"error": "Failed to fetch data from SmartGen API", "details": str(e)}), 500
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
