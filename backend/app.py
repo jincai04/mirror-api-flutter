@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from pyngrok import ngrok
 from dotenv import load_dotenv
 import os
 
@@ -42,15 +41,5 @@ def get_genset():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-
-    # Start Ngrok tunnel (only if authtoken is configured)
-    try:
-        public_url = ngrok.connect(port)
-        print(f"Ngrok public URL: {public_url}")
-    except Exception as e:
-        print(f"Ngrok not available (authentication required): {e}")
-        print(f"Running locally on http://localhost:{port}")
-        public_url = f"http://localhost:{port}"
-
-    # Run Flask app
+    print(f"Running on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port)
