@@ -20,14 +20,25 @@ def health():
 @app.route('/genset', methods=['POST'])
 def get_genset():
     data = request.get_json()
-    if not data or 'utoken' not in data:
-        return jsonify({"error": "Missing utoken"}), 400
+    if not data:
+        return jsonify({"error": "Missing request data"}), 400
 
-    utoken = data['utoken']
+    utoken = None
+
+    # Check if email or utoken is provided
+    if 'email' in data and data['email']:
+        email = data['email']
+        utoken = USER_TOKENS.get(email)
+        if not utoken:
+            return jsonify({"error": "No utoken found for user email"}), 404
+    elif 'utoken' in data and data['utoken']:
+        utoken = data['utoken']
+    else:
+        return jsonify({"error": "Missing email or utoken"}), 400
 
     # Validate utoken against known tokens
     if utoken not in USER_TOKENS.values():
-        return jsonify({"error": "No utoken found for user"}), 404
+        return jsonify({"error": "Invalid utoken"}), 404
 
     # Mock SmartGen API call (replace with real API integration)
     # In production, use SMARTGEN_API_KEY = os.getenv('SMARTGEN_API_KEY')
